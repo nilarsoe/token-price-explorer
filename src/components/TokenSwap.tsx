@@ -1,6 +1,6 @@
 // src/components/TokenSwap.tsx
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { fetchTokenPrice } from "../api/funkitApi";
 
 type Token = {
