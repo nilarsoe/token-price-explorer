@@ -1,79 +1,77 @@
-import { useEffect, useState } from "react";
+// src/components/TokenSwap.tsx
+
+import React, { useEffect, useState } from "react";
 import { fetchTokenInfo, fetchTokenPrice } from "../api/funkitApi";
 
-const tokenOptions = [
-  { symbol: "USDC", chainId: "1" },
-  { symbol: "USDT", chainId: "137" },
-  { symbol: "ETH", chainId: "8453" },
-  { symbol: "WBTC", chainId: "1" },
+type Token = {
+  symbol: string;
+  address: string;
+  chainId: number;
+};
+
+const tokens: Token[] = [
+  {
+    symbol: "USDT",
+    address: "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
+    chainId: 137,
+  },
+  {
+    symbol: "USDC",
+    address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+    chainId: 1,
+  },
+  {
+    symbol: "ETH",
+    address: "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    chainId: 8453,
+  },
+  {
+    symbol: "WBTC",
+    address: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
+    chainId: 1,
+  },
 ];
 
 export default function TokenSwap() {
-  const [fromToken, setFromToken] = useState(tokenOptions[0]);
-  const [toToken, setToToken] = useState(tokenOptions[1]);
+  const [fromToken, setFromToken] = useState<Token>(tokens[0]);
+  const [toToken, setToToken] = useState<Token>(tokens[1]);
   const [usdAmount, setUsdAmount] = useState<number>(100);
-  const [fromPriceInfo, setFromPriceInfo] = useState<any | null>(null);
-  const [toPriceInfo, setToPriceInfo] = useState<any | null>(null);
+  const [fromPrice, setFromPrice] = useState<number>(0);
+  const [toPrice, setToPrice] = useState<number>(0);
 
   useEffect(() => {
-    const fetchPrices = async () => {
-      const fromTokenInfo = await fetchTokenInfo(
-        fromToken.chainId,
-        fromToken.symbol
-      );
-      const toTokenInfo = await fetchTokenInfo(toToken.chainId, toToken.symbol);
+    async function fetchPrices() {
+      if (!fromToken || !toToken) return;
 
-      if (fromTokenInfo?.address && toTokenInfo?.address) {
-        const fromPrice = await fetchTokenPrice(
-          fromToken.chainId,
-          fromTokenInfo.address
-        );
-        const toPrice = await fetchTokenPrice(
-          toToken.chainId,
-          toTokenInfo.address
-        );
+      const [fromRes, toRes] = await Promise.all([
+        fetchTokenPrice(fromToken.chainId.toString(), fromToken.address),
+        fetchTokenPrice(toToken.chainId.toString(), toToken.address),
+      ]);
 
-        setFromPriceInfo(fromPrice);
-        setToPriceInfo(toPrice);
-      } else {
-        setFromPriceInfo(null);
-        setToPriceInfo(null);
-      }
-    };
+      setFromPrice(fromRes?.price || 0);
+      setToPrice(toRes?.price || 0);
+    }
 
     fetchPrices();
   }, [fromToken, toToken]);
 
-  const handleUsdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setUsdAmount(parseFloat(e.target.value));
-  };
-
-  const fromValue =
-    fromPriceInfo?.price != null
-      ? (usdAmount / fromPriceInfo.price).toFixed(4)
-      : "0.0000";
-
-  const toValue =
-    toPriceInfo?.price != null
-      ? (usdAmount / toPriceInfo.price).toFixed(4)
-      : "0.0000";
+  const fromAmount = fromPrice ? (usdAmount / fromPrice).toFixed(4) : "0.0000";
+  const toAmount = toPrice ? (usdAmount / toPrice).toFixed(4) : "0.0000";
 
   return (
-    <div className="max-w-md mx-auto p-6 bg-white rounded-xl shadow-md">
-      <h1 className="text-2xl font-bold mb-4">Token Swap Explorer</h1>
+    <div className="max-w-md mx-auto mt-10 p-6 border rounded-lg shadow-lg">
+      <h2 className="text-xl font-bold mb-4">Token Swap Explorer</h2>
 
       <div className="mb-4">
-        <label className="block mb-1">From Token:</label>
+        <label className="block font-medium mb-1">From Token:</label>
         <select
+          className="w-full border rounded p-2"
           value={fromToken.symbol}
           onChange={(e) =>
-            setFromToken(
-              tokenOptions.find((t) => t.symbol === e.target.value) || fromToken
-            )
+            setFromToken(tokens.find((t) => t.symbol === e.target.value)!)
           }
-          className="w-full p-2 border rounded"
         >
-          {tokenOptions.map((token) => (
+          {tokens.map((token) => (
             <option key={token.symbol} value={token.symbol}>
               {token.symbol}
             </option>
@@ -82,17 +80,15 @@ export default function TokenSwap() {
       </div>
 
       <div className="mb-4">
-        <label className="block mb-1">To Token:</label>
+        <label className="block font-medium mb-1">To Token:</label>
         <select
+          className="w-full border rounded p-2"
           value={toToken.symbol}
           onChange={(e) =>
-            setToToken(
-              tokenOptions.find((t) => t.symbol === e.target.value) || toToken
-            )
+            setToToken(tokens.find((t) => t.symbol === e.target.value)!)
           }
-          className="w-full p-2 border rounded"
         >
-          {tokenOptions.map((token) => (
+          {tokens.map((token) => (
             <option key={token.symbol} value={token.symbol}>
               {token.symbol}
             </option>
@@ -101,27 +97,21 @@ export default function TokenSwap() {
       </div>
 
       <div className="mb-4">
-        <label className="block mb-1">USD Amount:</label>
+        <label className="block font-medium mb-1">USD Amount:</label>
         <input
           type="number"
+          className="w-full border rounded p-2"
           value={usdAmount}
-          onChange={handleUsdChange}
-          className="w-full p-2 border rounded"
+          onChange={(e) => setUsdAmount(Number(e.target.value))}
         />
       </div>
 
-      <div className="bg-gray-100 p-4 rounded">
+      <div className="mt-4 space-y-1">
         <p>
-          {usdAmount} USD ≈{" "}
-          <strong>
-            {fromValue} {fromToken.symbol}
-          </strong>
+          {usdAmount} USD ≈ {fromAmount} {fromToken.symbol}
         </p>
         <p>
-          {usdAmount} USD ≈{" "}
-          <strong>
-            {toValue} {toToken.symbol}
-          </strong>
+          {usdAmount} USD ≈ {toAmount} {toToken.symbol}
         </p>
       </div>
     </div>
