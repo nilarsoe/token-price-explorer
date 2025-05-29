@@ -28,21 +28,12 @@ export const fetchTokenInfo = async (chainId: string, symbol: string) => {
   }
 };
 
-export const fetchTokenPrice = async (
-  chainId: string,
-  address: string
-): Promise<{ price: number } | null> => {
+export async function fetchTokenPrice(chainId: string, address: string) {
   try {
-    const priceInfo = await getAssetPriceInfo({
-      chainId,
-      address,
-      apiKey: API_KEY,
-    });
-    console.log(
-      `✅ Price Info for token ${address} on chain ${chainId}:`,
-      priceInfo
-    );
-    return { price: priceInfo.price };
+    const res = await fetch(`/api/proxy?chainId=${chainId}&address=${address}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    return data;
   } catch (error) {
     console.error(
       `❌ Error fetching price for token ${address} on chain ${chainId}:`,
@@ -50,4 +41,4 @@ export const fetchTokenPrice = async (
     );
     return null;
   }
-};
+}
