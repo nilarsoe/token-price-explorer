@@ -1,7 +1,4 @@
-import {
-  getAssetErc20ByChainAndSymbol,
-  getAssetPriceInfo,
-} from "@funkit/api-base";
+import { getAssetErc20ByChainAndSymbol } from "@funkit/api-base";
 
 const API_KEY = "Z9SZaOwpmE40KX61mUKWm5hrpGh7WHVkaTvQJpQk";
 
