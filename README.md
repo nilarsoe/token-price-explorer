@@ -1,35 +1,32 @@
-# 💱 Token Price Explorer
+# 🪙 Token Price Explorer
 
-A simple Token Swap Interface built with React and Tailwind CSS. This tool allows users to input a USD amount, select two tokens (From and To), and get approximate conversion values for both based on real-time price data.
+A simplified token swap interface built with React that allows users to select two crypto tokens, input a USD amount, and view the estimated equivalent values based on live token price data.
 
----
+## 🚀 Live Demo
 
-## ✨ Features
+🔗 [https://token-price-explorer.vercel.app](https://token-price-explorer.vercel.app)
 
-- Select "From" and "To" crypto tokens
-- Input USD amount to get conversion values
-- Real-time price fetching from `@funkit/api-base`
-- Minimal, responsive UI using Tailwind CSS
-- Supports USDC, USDT, ETH, WBTC across multiple chainIds
+## 📦 Tech Stack
 
----
+- **React** – UI framework
+- **TypeScript** – Static typing
+- **Vite** – Fast build tool
+- **Tailwind CSS** – Styling
+- **@funkit/api-base** – For fetching token metadata and price info
 
-## 🔧 Tech Stack
+## 📚 Features
 
-- React
-- Tailwind CSS
-- Vite
-- TypeScript
-- @funkit/api-base
+- Select a **source** and **target** crypto token
+- Enter a USD amount
+- Instantly view equivalent token values based on live prices
+- Responsive and clean UI
+- Minimal, intuitive layout
 
----
-
-## 🚀 Getting Started
+## 🛠️ Getting Started
 
 ### Prerequisites
 
-- Node.js (v16 or higher)
-- npm or yarn
+Make sure you have `Node.js` (>=18) and `npm` installed.
 
 ### Installation
 
@@ -37,73 +34,45 @@ A simple Token Swap Interface built with React and Tailwind CSS. This tool allow
 git clone https://github.com/nilarsoe/token-price-explorer.git
 cd token-price-explorer
 npm install
-# or
-yarn
-```
-
-### Run Locally
-
-```bash
 npm run dev
-# or
-yarn dev
 ```
 
-### Build for Production
+Then open your browser at [http://localhost:5173](http://localhost:5173)
 
-```bash
-npm run build
-# or
-yarn build
-```
+## ⚙️ API Integration
 
----
+This project uses the `@funkit/api-base` package to fetch:
 
-## 🌐 Live Demo
+- ERC20 token metadata
+- Token price data by chainId and address
 
-Deployed on [Vercel](https://token-price-explorer.vercel.app/)
+### API Key
 
----
+A development key (`Z9SZaOwpmE40KX61mUKWm5hrpGh7WHVkaTvQJpQk`) is used for testing purposes. You may change this in `src/config.ts` if needed.
 
-## 🗂️ Project Structure
+## 🧠 Assumptions & Notes
 
-```
-src/
-  ├── api/
-  │   └── funkitApi.ts       # API integration
-  ├── components/
-  │   └── TokenSwap.tsx      # Main component
-  ├── App.tsx
-  └── main.tsx
-```
+- The token list is **hardcoded** in `tokenList.ts` for simplicity.
+- No external state management is used (only React Hooks).
+- The UI is based on a wireframe provided in the task but styled freely using Tailwind CSS.
+- Error handling and loading states are minimal but structured for easy enhancement.
 
----
+## 📌 Notable Tokens Supported
 
-## 📌 Notable Decisions
+| Token           | Symbol | Chain ID |
+| --------------- | ------ | -------- |
+| USD Coin        | USDC   | 1        |
+| Tether          | USDT   | 137      |
+| Ethereum        | ETH    | 8453     |
+| Wrapped Bitcoin | WBTC   | 1        |
 
-- Used minimal styling to focus on clarity
-- Tailwind CSS for utility-first design
-- Componentized design to scale easily
-- Error states and fallback included in logic
+## 🔍 Future Improvements (Optional)
 
----
-
-## 🧪 Assumptions
-
-- Only basic input validation for demo
-- Supported tokens are predefined in code
-- Fallbacks in case price API returns invalid response
-
----
+- Add loading indicators and error messages
+- Fetch token list dynamically via API
+- Add input validation (e.g., USD amount must be > 0)
+- Support real token swap logic
 
 ## 📄 License
 
-MIT License
-
----
-
-## 🙋‍♀️ Author
-
-**Nilar Soe**  
-📧 Email: ms.nilarsoe@gmail.com  
-📱 Singapore | Available Immediately
+This project is for assessment purposes only.
