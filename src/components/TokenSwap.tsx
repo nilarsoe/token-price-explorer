@@ -1,7 +1,7 @@
 // src/components/TokenSwap.tsx
 
 import React, { useEffect, useState } from "react";
-import { fetchTokenInfo, fetchTokenPrice } from "../api/funkitApi";
+import { fetchTokenPrice } from "../api/funkitApi";
 
 type Token = {
   symbol: string;
@@ -36,27 +36,42 @@ export default function TokenSwap() {
   const [fromToken, setFromToken] = useState<Token>(tokens[0]);
   const [toToken, setToToken] = useState<Token>(tokens[1]);
   const [usdAmount, setUsdAmount] = useState<number>(100);
-  const [fromPrice, setFromPrice] = useState<number>(0);
-  const [toPrice, setToPrice] = useState<number>(0);
+  const [fromPrice, setFromPrice] = useState<number | null>(null);
+  const [toPrice, setToPrice] = useState<number | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
     async function fetchPrices() {
       if (!fromToken || !toToken) return;
+      setLoading(true);
+
+      console.log(
+        "🔄 Fetching prices for",
+        fromToken.symbol,
+        "and",
+        toToken.symbol
+      );
 
       const [fromRes, toRes] = await Promise.all([
         fetchTokenPrice(fromToken.chainId.toString(), fromToken.address),
         fetchTokenPrice(toToken.chainId.toString(), toToken.address),
       ]);
 
-      setFromPrice(fromRes?.price || 0);
-      setToPrice(toRes?.price || 0);
+      console.log("✅ From token response:", fromRes);
+      console.log("✅ To token response:", toRes);
+
+      setFromPrice(fromRes?.price ?? null);
+      setToPrice(toRes?.price ?? null);
+      setLoading(false);
     }
 
     fetchPrices();
   }, [fromToken, toToken]);
 
-  const fromAmount = fromPrice ? (usdAmount / fromPrice).toFixed(4) : "0.0000";
-  const toAmount = toPrice ? (usdAmount / toPrice).toFixed(4) : "0.0000";
+  const fromAmount =
+    fromPrice && fromPrice > 0 ? (usdAmount / fromPrice).toFixed(4) : "0.0000";
+  const toAmount =
+    toPrice && toPrice > 0 ? (usdAmount / toPrice).toFixed(4) : "0.0000";
 
   return (
     <div className="max-w-md mx-auto mt-10 p-6 border rounded-lg shadow-lg">
@@ -107,12 +122,18 @@ export default function TokenSwap() {
       </div>
 
       <div className="mt-4 space-y-1">
-        <p>
-          {usdAmount} USD ≈ {fromAmount} {fromToken.symbol}
-        </p>
-        <p>
-          {usdAmount} USD ≈ {toAmount} {toToken.symbol}
-        </p>
+        {loading ? (
+          <p className="text-gray-500">Loading prices...</p>
+        ) : (
+          <>
+            <p>
+              {usdAmount} USD ≈ {fromAmount} {fromToken.symbol}
+            </p>
+            <p>
+              {usdAmount} USD ≈ {toAmount} {toToken.symbol}
+            </p>
+          </>
+        )}
       </div>
     </div>
   );
