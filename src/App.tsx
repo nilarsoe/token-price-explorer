@@ -1,5 +1,5 @@
 // src/App.tsx
-import React from "react";
+
 import TokenSwap from "./components/TokenSwap";
 
 function App() {
