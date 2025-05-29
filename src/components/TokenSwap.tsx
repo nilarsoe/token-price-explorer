@@ -1,90 +1,98 @@
-// src/components/TokenSwap.tsx
-
 import { useEffect, useState } from "react";
-import { fetchTokenPrice } from "../api/funkitApi";
+import {
+  getAssetErc20ByChainAndSymbol,
+  getAssetPriceInfo,
+} from "@funkit/api-base";
+import { ArrowLeftRight } from "lucide-react"; // install with `npm i lucide-react`
 
-type Token = {
-  symbol: string;
-  address: string;
-  chainId: number;
-};
+const API_KEY = "Z9SZaOwpmE40KX61mUKWm5hrpGh7WHVkaTvQJpQk";
 
-const tokens: Token[] = [
-  {
-    symbol: "USDT",
-    address: "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
-    chainId: 137,
-  },
-  {
-    symbol: "USDC",
-    address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
-    chainId: 1,
-  },
-  {
-    symbol: "ETH",
-    address: "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
-    chainId: 8453,
-  },
-  {
-    symbol: "WBTC",
-    address: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
-    chainId: 1,
-  },
+const tokens = [
+  { symbol: "USDC", chainId: "1" },
+  { symbol: "USDT", chainId: "137" },
+  { symbol: "ETH", chainId: "8453" },
+  { symbol: "WBTC", chainId: "1" },
 ];
 
 export default function TokenSwap() {
-  const [fromToken, setFromToken] = useState<Token>(tokens[0]);
-  const [toToken, setToToken] = useState<Token>(tokens[1]);
-  const [usdAmount, setUsdAmount] = useState<number>(100);
+  const [fromToken, setFromToken] = useState(tokens[0]);
+  const [toToken, setToToken] = useState(tokens[1]);
+  const [usdAmount, setUsdAmount] = useState(100);
   const [fromPrice, setFromPrice] = useState<number | null>(null);
   const [toPrice, setToPrice] = useState<number | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
-    async function fetchPrices() {
-      if (!fromToken || !toToken) return;
-      setLoading(true);
+    const fetchPrices = async () => {
+      try {
+        const [fromTokenInfo, toTokenInfo] = await Promise.all([
+          getAssetErc20ByChainAndSymbol({
+            chainId: fromToken.chainId,
+            symbol: fromToken.symbol,
+            apiKey: API_KEY,
+          }),
+          getAssetErc20ByChainAndSymbol({
+            chainId: toToken.chainId,
+            symbol: toToken.symbol,
+            apiKey: API_KEY,
+          }),
+        ]);
 
-      console.log(
-        "🔄 Fetching prices for",
-        fromToken.symbol,
-        "and",
-        toToken.symbol
-      );
+        const [fromPriceData, toPriceData] = await Promise.all([
+          getAssetPriceInfo({
+            chainId: fromToken.chainId,
+            assetTokenAddress: fromTokenInfo.address,
+            apiKey: API_KEY,
+          }),
+          getAssetPriceInfo({
+            chainId: toToken.chainId,
+            assetTokenAddress: toTokenInfo.address,
+            apiKey: API_KEY,
+          }),
+        ]);
 
-      const [fromRes, toRes] = await Promise.all([
-        fetchTokenPrice(fromToken.chainId.toString(), fromToken.address),
-        fetchTokenPrice(toToken.chainId.toString(), toToken.address),
-      ]);
-
-      console.log("✅ From token response:", fromRes);
-      console.log("✅ To token response:", toRes);
-
-      setFromPrice(fromRes?.price ?? null);
-      setToPrice(toRes?.price ?? null);
-      setLoading(false);
-    }
+        setFromPrice(fromPriceData.unitPrice);
+        setToPrice(toPriceData.unitPrice);
+      } catch (error) {
+        console.error("Error fetching prices:", error);
+        setFromPrice(null);
+        setToPrice(null);
+      }
+    };
 
     fetchPrices();
   }, [fromToken, toToken]);
 
-  const fromAmount =
-    fromPrice && fromPrice > 0 ? (usdAmount / fromPrice).toFixed(4) : "0.0000";
-  const toAmount =
-    toPrice && toPrice > 0 ? (usdAmount / toPrice).toFixed(4) : "0.0000";
+  const handleSwap = () => {
+    const temp = fromToken;
+    setFromToken(toToken);
+    setToToken(temp);
+  };
+
+  const formatTokenAmount = (amount: number) => {
+    if (amount >= 0.0001) return amount.toFixed(4);
+    if (amount > 0) return amount.toExponential(2);
+    return "0.0000";
+  };
+
+  const fromAmount = fromPrice
+    ? formatTokenAmount(usdAmount / fromPrice)
+    : "0.0000";
+  const toAmount = toPrice ? formatTokenAmount(usdAmount / toPrice) : "0.0000";
 
   return (
-    <div className="max-w-md mx-auto mt-10 p-6 border rounded-lg shadow-lg">
-      <h2 className="text-xl font-bold mb-4">Token Swap Explorer</h2>
+    <div className="max-w-md mx-auto p-6 bg-white rounded-xl shadow-md space-y-6">
+      <h1 className="text-2xl font-bold text-center">Token Swap Explorer</h1>
 
-      <div className="mb-4">
-        <label className="block font-medium mb-1">From Token:</label>
+      <div>
+        <label className="block text-sm font-medium text-gray-700">
+          From Token:
+        </label>
         <select
-          className="w-full border rounded p-2"
           value={fromToken.symbol}
           onChange={(e) =>
             setFromToken(tokens.find((t) => t.symbol === e.target.value)!)
           }
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
         >
           {tokens.map((token) => (
             <option key={token.symbol} value={token.symbol}>
@@ -94,14 +102,26 @@ export default function TokenSwap() {
         </select>
       </div>
 
-      <div className="mb-4">
-        <label className="block font-medium mb-1">To Token:</label>
+      <div className="flex justify-center">
+        <button
+          onClick={handleSwap}
+          className="text-gray-600 hover:text-black p-2"
+          aria-label="Swap tokens"
+        >
+          <ArrowLeftRight size={24} />
+        </button>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700">
+          To Token:
+        </label>
         <select
-          className="w-full border rounded p-2"
           value={toToken.symbol}
           onChange={(e) =>
             setToToken(tokens.find((t) => t.symbol === e.target.value)!)
           }
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
         >
           {tokens.map((token) => (
             <option key={token.symbol} value={token.symbol}>
@@ -111,29 +131,31 @@ export default function TokenSwap() {
         </select>
       </div>
 
-      <div className="mb-4">
-        <label className="block font-medium mb-1">USD Amount:</label>
+      <div>
+        <label className="block text-sm font-medium text-gray-700">
+          USD Amount:
+        </label>
         <input
           type="number"
-          className="w-full border rounded p-2"
           value={usdAmount}
           onChange={(e) => setUsdAmount(Number(e.target.value))}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
         />
       </div>
 
-      <div className="mt-4 space-y-1">
-        {loading ? (
-          <p className="text-gray-500">Loading prices...</p>
-        ) : (
-          <>
-            <p>
-              {usdAmount} USD ≈ {fromAmount} {fromToken.symbol}
-            </p>
-            <p>
-              {usdAmount} USD ≈ {toAmount} {toToken.symbol}
-            </p>
-          </>
-        )}
+      <div className="bg-gray-100 rounded-lg p-4 text-center space-y-2">
+        <p>
+          <strong>{usdAmount} USD</strong> ≈{" "}
+          <strong>
+            {fromAmount} {fromToken.symbol}
+          </strong>
+        </p>
+        <p>
+          <strong>{usdAmount} USD</strong> ≈{" "}
+          <strong>
+            {toAmount} {toToken.symbol}
+          </strong>
+        </p>
       </div>
     </div>
   );
