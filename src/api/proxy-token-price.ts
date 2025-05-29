@@ -1,14 +1,22 @@
-export default async function handler(req, res) {
+import type { NextApiRequest, NextApiResponse } from "next";
+
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   const { chainId, address } = req.query;
 
+  if (!chainId || !address) {
+    return res.status(400).json({ error: "Missing query params" });
+  }
+
   try {
-    const response = await fetch(
-      `https://api.fun.xyz/v1/asset/erc20/price/${chainId}/${address}`
-    );
+    const apiUrl = `https://api.funkit.xyz/token/price?chainId=${chainId}&address=${address}`;
+    const response = await fetch(apiUrl);
     const data = await response.json();
     res.status(200).json(data);
   } catch (error) {
-    console.error("❌ Proxy error (token price):", error);
+    console.error("❌ Proxy error (price):", error);
     res.status(500).json({ error: "Failed to fetch token price" });
   }
 }
