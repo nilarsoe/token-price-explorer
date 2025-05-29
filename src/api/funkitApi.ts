@@ -1,4 +1,3 @@
-// src/api/funkitApi.ts
 import {
   getAssetErc20ByChainAndSymbol,
   getAssetPriceInfo,
@@ -6,7 +5,6 @@ import {
 
 const API_KEY = "Z9SZaOwpmE40KX61mUKWm5hrpGh7WHVkaTvQJpQk";
 
-// Fetch token information by chain and symbol
 export const fetchTokenInfo = async (chainId: string, symbol: string) => {
   try {
     const token = await getAssetErc20ByChainAndSymbol({
@@ -30,25 +28,24 @@ export const fetchTokenInfo = async (chainId: string, symbol: string) => {
   }
 };
 
-// Fetch real token price using @funkit/api-base
 export const fetchTokenPrice = async (
   chainId: string,
-  tokenAddress: string
-) => {
+  address: string
+): Promise<{ price: number } | null> => {
   try {
     const priceInfo = await getAssetPriceInfo({
       chainId,
-      assetTokenAddress: tokenAddress,
+      address,
       apiKey: API_KEY,
     });
     console.log(
-      `✅ Price Info for ${tokenAddress} on chain ${chainId}:`,
+      `✅ Price Info for token ${address} on chain ${chainId}:`,
       priceInfo
     );
-    return priceInfo;
+    return { price: priceInfo.price };
   } catch (error) {
     console.error(
-      `❌ Error fetching price for ${tokenAddress} on chain ${chainId}:`,
+      `❌ Error fetching price for token ${address} on chain ${chainId}:`,
       error
     );
     return null;

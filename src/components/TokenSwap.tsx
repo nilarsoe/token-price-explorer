@@ -23,7 +23,7 @@ export default function TokenSwap() {
       );
       const toTokenInfo = await fetchTokenInfo(toToken.chainId, toToken.symbol);
 
-      if (fromTokenInfo && toTokenInfo) {
+      if (fromTokenInfo?.address && toTokenInfo?.address) {
         const fromPrice = await fetchTokenPrice(
           fromToken.chainId,
           fromTokenInfo.address
@@ -32,8 +32,12 @@ export default function TokenSwap() {
           toToken.chainId,
           toTokenInfo.address
         );
+
         setFromPriceInfo(fromPrice);
         setToPriceInfo(toPrice);
+      } else {
+        setFromPriceInfo(null);
+        setToPriceInfo(null);
       }
     };
 
@@ -45,13 +49,13 @@ export default function TokenSwap() {
   };
 
   const fromValue =
-    fromPriceInfo?.price?.usd != null
-      ? (usdAmount / fromPriceInfo.price.usd).toFixed(4)
+    fromPriceInfo?.price != null
+      ? (usdAmount / fromPriceInfo.price).toFixed(4)
       : "0.0000";
 
   const toValue =
-    toPriceInfo?.price?.usd != null
-      ? (usdAmount / toPriceInfo.price.usd).toFixed(4)
+    toPriceInfo?.price != null
+      ? (usdAmount / toPriceInfo.price).toFixed(4)
       : "0.0000";
 
   return (
